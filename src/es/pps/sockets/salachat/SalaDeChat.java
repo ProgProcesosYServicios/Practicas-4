@@ -1,9 +1,6 @@
 package es.pps.sockets.salachat;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -12,108 +9,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Clase que implementa el interfaz Runnable para ser lanzada en otra hebra.
- * 
- * Recibe un InputStream como par√°metro en el constructor y se queda
- * cont√≠nuamente leyendo l√≠neas de √©l (a trav√©s de un BufferedReader). Cada vez
- * que recibe una l√≠nea la manda a todos los PrintWriter contenidos en una lista
- * recibida en el constructor, salvo a uno especial que es el asociado al mismo
- * socket que el InputStream de donde estamos leyendo.
- * 
- * @author Pedro Pablo G√≥mez Mart√≠n
- */
-class RecibeYEscribe implements Runnable {
-
-	/**
-	 * Constructor
-	 * 
-	 * @param is      Stream de entrada del que leer l√≠neas.
-	 * @param pw      PrintWriter asociado al mismo socket que el stream del primer
-	 *                par√°metro.
-	 * @param writers Lista con los canales de salida de todos los clientes.
-	 */
-	RecibeYEscribe(InputStream is, PrintWriter pw, List<PrintWriter> writers) {
-
-		_reader = new BufferedReader(new InputStreamReader(is));
-		_pw = pw;
-		_writers = writers;
-
-	} // Constructor
-
-	/**
-	 * M√©todo para ser lanzado en otra hebra. Lee lineas del canal recibido en el
-	 * constructor y las escribe por todos los PrintWriter de la lista recibida en
-	 * el constructor.
-	 */
-	@Override
-	public void run() {
-
-		String leido;
-
-		while (true) {
-			try {
-				leido = _reader.readLine();
-			} catch (IOException e) {
-				break;
-			}
-			if (leido == null) {
-				// EOF.
-				break;
-			}
-			for (PrintWriter cliente : _writers) {
-				if (cliente != _pw) {
-					// El PrintWriter siguiente no es el cliente al que
-					// estamos escuchando aqu√≠ (para no mandarnos a
-					// nosotros mismos lo que acabamos de enviar)
-					cliente.println(leido);
-					if (cliente.checkError())
-						System.err.println("\t[Error en el √∫ltimo env√≠o]");
-				}
-			}
-			System.out.println(leido);
-		} // while
-
-		// Cerramos el canal de entrada. El socket se dar√°
-		// cuenta, y ver√° que el canal de salida est√°
-		// tambi√©n cerrado (por el otro extremo) y
-		// dar√° error en el pr√≥ximo intento de escritura.
-		try {
-			_reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		System.out.println("  [Fin de la hebra de entrada]");
-
-	} // run
-
-	BufferedReader _reader;
-	PrintWriter _pw;
-	List<PrintWriter> _writers;
-
-} // class RecibeYReenvia
-
-//--------------------------------------------------------
-//--------------------------------------------------------
-
-/**
- * Clase principal de la aplicaci√≥n. Es el lado del servidor de una sala de
+ * Clase principal de la aplicaciÛn. Es el lado del servidor de una sala de
  * chat. Permite que se le conecten tantos clientes como se quiera. Para cada
- * uno, se queda escuchando en su stream de entrada y reenv√≠a todo lo que le
- * llega a todos los dem√°s, sin modificarlo.
+ * uno, se queda escuchando en su stream de entrada y reenvÌa todo lo que le
+ * llega a todos los dem·s, sin modificarlo.
  * 
- * En la salida est√°ndar muestra, por depuraci√≥n, todos los mensajes recibidos,
- * as√≠ como informaci√≥n sobre cada conexi√≥n que nos llega.
+ * En la salida est·ndar muestra, por depuraciÛn, todos los mensajes recibidos,
+ * asÌ como informaciÛn sobre cada conexiÛn que nos llega.
  * 
- * @author Pedro Pablo G√≥mez Mart√≠n
+ * @author Pedro Pablo GÛmez MartÌn
  */
 public class SalaDeChat {
 
 	/**
-	 * M√©todo auxiliar que recibe una direcci√≥n de internet y un puerto y lo escribe
-	 * por la salida est√°ndar.
+	 * MÈtodo auxiliar que recibe una direcciÛn de internet y un puerto y lo escribe
+	 * por la salida est·ndar.
 	 * 
-	 * @param address Direcci√≥n de internet
+	 * @param address DirecciÛn de internet
 	 * @param port    Puerto
 	 */
 	protected static void escribeExtremo(InetAddress address, int port) {
@@ -130,24 +42,24 @@ public class SalaDeChat {
 	/**
 	 * Programa principal.
 	 * 
-	 * @param args Argumentos recibidos de la l√≠nea de √≥rdenes. Debe haber uno, con
-	 *             el n√∫mero de puerto donde escuchar.
+	 * @param args Argumentos recibidos de la lÌnea de Ûrdenes. Debe haber uno, con
+	 *             el n˙mero de puerto donde escuchar.
 	 */
 	public static void main(String[] args) {
 
 		Socket socket;
 		int port;
 
-		// Analizamos los par√°metros.
+		// Analizamos los par·metros.
 		if (args.length < 1) {
-			// System.err.println("Falta el n√∫mero de puerto.");
+			// System.err.println("Falta el n˙mero de puerto.");
 			port = 4567;
 			// return;
 		} else
 			try {
 				port = Integer.parseInt(args[0]);
 			} catch (NumberFormatException e) {
-				System.err.println("Puerto inv√°lido");
+				System.err.println("Puerto inv·lido");
 				return;
 			}
 
@@ -157,11 +69,11 @@ public class SalaDeChat {
 
 			// Creamos la lista de "writers" (el lado de salida de
 			// todos los sockets que se nos han conectado), inicialmente
-			// vac√≠a.
+			// vacÌa.
 			List<PrintWriter> writers;
 			writers = new LinkedList<PrintWriter>();
 
-			// Damos vueltas cont√≠nuamente.
+			// Damos vueltas contÌnuamente.
 			while (true) {
 
 				// Esperamos el siguiente cliente.
@@ -174,8 +86,8 @@ public class SalaDeChat {
 				}
 
 				// Acaba de llegarnos un nuevo cliente.
-				// Mostramos informaci√≥n de la conexi√≥n.
-				System.out.print("[ Conexi√≥n desde ");
+				// Mostramos informaciÛn de la conexiÛn.
+				System.out.print("[ ConexiÛn desde ");
 				escribeExtremo(socket.getLocalAddress(), socket.getLocalPort());
 				System.out.print(" a ");
 				escribeExtremo(socket.getInetAddress(), socket.getPort());
@@ -190,6 +102,7 @@ public class SalaDeChat {
 					System.err.println("No pude conseguir el canal de escritura del socket.");
 					continue;
 				}
+
 				writers.add(out);
 
 				// Lanzamos una hebra para escribir todo lo que nos llegue.
